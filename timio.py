@@ -9,7 +9,7 @@ import streamlit as st
 # Configuration
 # --------------------------------------------------
 
-APP_TITLE = "Daily Time Entry"
+APP_TITLE = "Daily Time Reporting"
 CSV_FILE = Path(__file__).resolve().parent / "data.csv"
 
 CATEGORIES = ["service","service_troubleshooting","admin", "new_dev", "self_dev", "external_meeting", "support", "maintenance"]
@@ -66,6 +66,34 @@ def save_entries(selected_date, owner, values):
     return len(rows)
 
 
+def handle_save():
+    """Save the current form values and reset category widgets on success."""
+
+    owner = st.session_state["owner"]
+    if not owner.strip():
+        st.session_state["save_error"] = "Please enter an owner name."
+        return
+
+    values = [
+        st.session_state[f"value_{category}"]
+        for category in CATEGORIES
+    ]
+
+    try:
+        count = save_entries(st.session_state["selected_date"], owner, values)
+    except (ValueError, OSError) as error:
+        st.session_state["save_error"] = str(error)
+        return
+
+    selected_date = st.session_state["selected_date"]
+    st.session_state["save_success"] = (
+        f"Saved {count} entr{'y' if count == 1 else 'ies'} "
+        f"for {selected_date.isoformat()}."
+    )
+    for category in CATEGORIES:
+        st.session_state[f"value_{category}"] = "0"
+
+
 # --------------------------------------------------
 # Streamlit interface
 # --------------------------------------------------
@@ -76,9 +104,9 @@ st.set_page_config(
     layout="centered",
 )
 
-st.title("📝 Daily Time Entry")
+st.title("📝 Daily Time Reporting")
 st.write(
-    "Select a date, enter the values for your categories, "
+    "Select a date, enter the hours for your categories, "
     "and save your entries."
 )
 
@@ -109,43 +137,35 @@ owner = st.text_input(
     "Owner",
     value="Sima",
     placeholder="Enter your name",
+    key="owner",
 )
 
 st.subheader("Category values")
 st.caption("Categories default to 0 and are saved only when you enter a non-zero value.")
 
-# Five category input fields.
-values = []
-
+# Category input fields.
 for category in CATEGORIES:
-    value = st.text_input(
+    st.text_input(
         f"{category}",
         value="0",
         key=f"value_{category}",
         placeholder="Enter a number",
     )
-    values.append(value)
 
 st.divider()
 
 # Save button.
-if st.button("Save entries", type="primary", use_container_width=True):
-    if not owner.strip():
-        st.error("Please enter an owner name.")
-    else:
-        try:
-            count = save_entries(selected_date, owner, values)
-            st.success(
-                f"Saved {count} entr{'y' if count == 1 else 'ies'} "
-                f"for {selected_date.isoformat()}."
-            )
+st.button(
+    "Save entries",
+    type="primary",
+    use_container_width=True,
+    on_click=handle_save,
+)
 
-            # Clear category inputs after a successful save.
-            for category in CATEGORIES:
-                st.session_state[f"value_{category}"] = "0"
-
-        except (ValueError, OSError) as error:
-            st.error(str(error))
+if "save_error" in st.session_state:
+    st.error(st.session_state.pop("save_error"))
+if "save_success" in st.session_state:
+    st.success(st.session_state.pop("save_success"))
 
 # Show where the data is stored.
 st.caption(f"Data file: {CSV_FILE.name}")
