@@ -6,6 +6,8 @@ The new entry will be appended to the CSV file. Make sure to reset the form befo
 
 Usage
 1. Install the required packages:
+   
    pip install streamlit pandas
 2. Run the app:
+   
    python -m streamlit run timio.py 
