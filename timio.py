@@ -9,7 +9,7 @@ import streamlit as st
 # Configuration
 # --------------------------------------------------
 
-APP_TITLE = "Daily Data Entry"
+APP_TITLE = "Daily Time Entry"
 CSV_FILE = Path(__file__).resolve().parent / "data.csv"
 
 CATEGORIES = ["service","service_troubleshooting","admin", "new_dev", "self_dev", "external_meeting", "support", "maintenance"]
@@ -76,7 +76,7 @@ st.set_page_config(
     layout="centered",
 )
 
-st.title("📝 Daily Data Entry")
+st.title("📝 Daily Time Entry")
 st.write(
     "Select a date, enter the values for your categories, "
     "and save your entries."
@@ -108,7 +108,7 @@ st.divider()
 owner = st.text_input(
     "Owner",
     value="Sima",
-    placeholder="Enter owner name, e.g. Sima",
+    placeholder="Enter your name",
 )
 
 st.subheader("Category values")
